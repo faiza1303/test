@@ -1,0 +1,21 @@
+{
+    "ruleId":"R09.1",
+    "label":"Tout label doit pointer, ou contenir, un unique champ de saisie.",
+    "family":"Accessibilité",
+    "domain":"Internet / Intranet",
+    "level":"Erreur",
+    "description":"",
+    "description_intra":"",
+    "correction":"Un intitulé/label doit être associé à un seul champ de saisie pour des raisons d'accessibilité.",
+    "correction_intra":"",
+    "linkedDocs":[
+        {
+            "name":"Notice d'accessibilité HTML",
+            "link":"https://ergonomie-ei-si.cm-cic.fr/fr/accessibilite/notice-accessibilite-html.pdf"
+        }
+    ],
+    "testedComponent":"Tout élément de saisie de formulaire (input, checkboxes, select, textarea, ...)",
+    "testedParents":"",
+    "testedChildren":"",
+    "linkedComponents":["207","54","49","143","48","53","270","210","146","268"]
+}

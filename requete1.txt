@@ -1,0 +1,32 @@
+USE [ESD1_DOCS_TEST]
+GO
+
+/****** Object:  Table [dbo].[ErgoqualRule]    Script Date: 26/09/2024 16:40:57 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[ErgoqualRule](
+	[Regle] [int] NULL,
+	[Regle_id] [varchar](50) NOT NULL,
+	[Lien] [varchar](50) NULL,
+	[Libelle] [int] NULL,
+	[Description] [int] NULL,
+	[Categorie] [int] NULL,
+	[Niveau] [int] NULL,
+	[Domaine] [int] NULL,
+	[Lien_Doc] [varchar](50) NULL,
+	[Rgaa_id] [varchar](50) NULL,
+	[Maq] [bit] NULL,
+	[Description_Intra_Id] [int] NULL,
+	[Correction_Id] [int] NULL,
+ CONSTRAINT [PK_ErgoqualRule] PRIMARY KEY CLUSTERED 
+(
+	[Regle_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
