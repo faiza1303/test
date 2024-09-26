@@ -1,0 +1,22 @@
+USE [ESD1_DOCS_TEST]
+GO
+
+/****** Object:  Table [dbo].[ErgoqualRgaa]    Script Date: 26/09/2024 16:47:24 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[ErgoqualRgaa](
+	[Rgaa_critere] [varchar](50) NULL,
+	[Rgaa_libelle] [int] NULL,
+	[Rgaa_lien] [varchar](50) NULL,
+	[Rgaa_fae] [varchar](10) NULL,
+	[Rgaa_Niveau_Ara] [varchar](10) NULL,
+	[Rgaa_Quick_Win] [bit] NULL,
+	[Rgaa_Ra_web] [bit] NULL
+) ON [PRIMARY]
+GO
+
+
