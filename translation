@@ -1,0 +1,22 @@
+USE [ESD1_DOCS_TEST]
+GO
+
+/****** Object:  Table [dbo].[Translation]    Script Date: 26/09/2024 16:51:46 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Translation](
+	[TRA_Id] [int] NOT NULL,
+	[TRA_LanguageCode] [varchar](2) NOT NULL,
+	[TRA_Text] [nvarchar](max) NOT NULL,
+	[TRA_LastUpdateDate] [datetime] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Translation] ADD  DEFAULT ('ZZ') FOR [TRA_LanguageCode]
+GO
+
+
