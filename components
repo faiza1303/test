@@ -1,0 +1,31 @@
+USE [ESD1_DOCS_TEST]
+GO
+
+/****** Object:  Table [dbo].[ErgoqualComponentRelationship]    Script Date: 26/09/2024 16:46:53 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[ErgoqualComponentRelationship](
+	[Regle_id] [varchar](50) NULL,
+	[Composant_id] [int] NULL
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[ErgoqualComponentRelationship]  WITH CHECK ADD  CONSTRAINT [FK_ErgoqualComponentRelationship_ControlOrTag] FOREIGN KEY([Composant_id])
+REFERENCES [dbo].[ControlOrTag] ([CTR_Id])
+GO
+
+ALTER TABLE [dbo].[ErgoqualComponentRelationship] CHECK CONSTRAINT [FK_ErgoqualComponentRelationship_ControlOrTag]
+GO
+
+ALTER TABLE [dbo].[ErgoqualComponentRelationship]  WITH NOCHECK ADD  CONSTRAINT [FK_ErgoqualComponentRelationship_ErgoqualRule] FOREIGN KEY([Regle_id])
+REFERENCES [dbo].[ErgoqualRule] ([Regle_id])
+GO
+
+ALTER TABLE [dbo].[ErgoqualComponentRelationship] CHECK CONSTRAINT [FK_ErgoqualComponentRelationship_ErgoqualRule]
+GO
+
+
