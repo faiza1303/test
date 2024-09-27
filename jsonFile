@@ -1,0 +1,131 @@
+
+const fs = require('fs');
+const path = require('path');
+
+function generateSQL(rule) {
+ // Enlever le préfixe 'R' et tous les zéros suivants
+ const regleValue = rule.ruleId.replace(/^R0*/, ''); // Enlève 'R' et tous les zéros qui suivent
+
+
+    const insertSQL = `
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        DECLARE @NewTraId INT = (SELECT MAX(TRA_Id) + 1 FROM dbo.Translation);
+        DECLARE @NewTraDescId = @NewTraId + 1;
+        DECLARE @NewTraDescIntraId = @NewTraId + 2;
+        DECLARE @NewTraCorrecId = @NewTraId + 3;
+
+        -- Insertion des traductions
+        INSERT INTO Translation (TRA_Id, TRA_LanguageCode, TRA_Text)
+        VALUES 
+            (@NewTraId, 'FR', '${rule.label}'),
+            (@NewTraId , 'EN', ''),
+            (@NewTraDescId , 'FR', '${rule.description}'),
+            (@NewTraDescId , 'EN', ''),
+            (@NewTraDescIntraId , 'FR', '${rule.description_intra}'),
+            (@NewTraDescIntraId , 'EN', ''),
+            (@NewTraCorrecId , 'FR', '${rule.correction}'),
+            (@NewTraCorrecId , 'EN', '');
+
+        -- Obtention de l'ID de règle
+        SET @CurrentRuleId = (SELECT MAX(TRA_Id) FROM dbo.Translation);
+
+        -- Insertion de la règle
+        INSERT INTO ErgoqualRule (Regle, Regle_id, Lien, Libelle, Description, Categorie, Niveau, Domaine, Lien_Doc, Rgaa_id, Maq, Description_Intra_Id, Correction_Id)
+        VALUES (
+            '${regleValue}',
+            '${rule.ruleId}',
+            '',
+            @NewTraId, -- Libelle
+            @NewTraDescId, -- Description
+            (SELECT Id FROM dbo.Category WHERE Category='${rule.family}'), -- Categorie
+            ${getLevelValue(rule.level)}, -- Niveau
+            ${getDomainValue(rule.domain)}, -- Domaine
+            NULL,
+            NULL, -- Rgaa_id
+            0, -- Maq
+            @NewTraDescIntraId , -- Description_Intra_Id
+            @NewTraCorrecId,  -- Correction_Id
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @ErrorMessage NVARCHAR(4000);
+        DECLARE @ErrorSeverity INT;
+        DECLARE @ErrorState INT;
+
+        SELECT 
+            @ErrorMessage = ERROR_MESSAGE(),
+            @ErrorSeverity = ERROR_SEVERITY(),
+            @ErrorState = ERROR_STATE();
+
+        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH;
+    `;
+
+    const componentInserts = rule.linkedComponents.map(componentId => `
+    INSERT INTO ErgoqualComponentRelationship (Regle_id, Composant_id)
+    VALUES (
+        '${rule.ruleId}', 
+        ${componentId}
+    );
+    `).join('\n');
+
+    return insertSQL + componentInserts;
+}
+
+function getLevelValue(level) {
+    switch (level) {
+        case 'Info':
+            return 1; // Assignez la valeur appropriée
+        case 'Alerte':
+            return 2; // Assignez la valeur appropriée
+        case 'Erreur':
+            return 3; // Assignez la valeur appropriée
+        default:
+            return 'NULL'; // Valeur par défaut si non spécifié
+    }
+}
+
+function getDomainValue(domain) {
+    switch (domain) {
+        case 'Internet':
+            return 0; // Assignez la valeur appropriée
+        case 'Intranet':
+            return 1; // Assignez la valeur appropriée
+        case 'Internet / Intranet':
+            return 2; // Assignez la valeur appropriée
+        default:
+            return 'NULL'; // Valeur par défaut si non spécifié
+    }
+}
+
+function processJSONFiles() {
+    const directoryPath = 'C:\\appli\\statrw\\esd1_docs\\ergo_norme_accessibility\\fr\\ergoqual'; // Mettez le chemin vers vos fichiers JSON
+    let allSQL = '';
+
+    fs.readdir(directoryPath, (err, files) => {
+        if (err) {
+            return console.error('Unable to scan directory: ' + err);
+        }
+
+        files.forEach(file => {
+            if (path.extname(file) === '.json') {
+                const filePath = path.join(directoryPath, file);
+                const data = fs.readFileSync(filePath, 'utf8');
+                const rule = JSON.parse(data);
+                allSQL += generateSQL(rule) + '\n';
+            }
+        });
+
+        // Écrire les requêtes SQL dans un fichier
+        fs.writeFileSync('insert_statements.sql', allSQL);
+        console.log('SQL insert statements have been generated in insert_statements.sql');
+    });
+}
+
+// Démarrer le traitement
+processJSONFiles();
