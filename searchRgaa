@@ -1,0 +1,212 @@
+using System;
+using System.Collections.Generic;
+using CDM.DevbCommon.Navigation.ReflexiveSteps;
+using CDM.DevbCommon.WebXForms;
+using CDM.DevbCommon.XForms.ObjectDescription;
+using CDM.ESD1_DOCS.BusinessLogic.BackOffice;
+using CDM.ESD1_DOCS.ViewModels;
+using CDM.ESD1_DOCS.ViewModels.NormeAccess.Rgaa;
+using ESD1_ACOR.App_CSharp.Tools;
+using static CDM.ESD1_DOCS.BusinessLogic.BackOffice.CRgaa;
+
+namespace CDM.ESD1_DOCS.Commands
+{
+    /// <summary>
+    /// Étape de la page d'objet
+    /// </summary>
+    internal class RgaaList : Esd1DocsBase<RgaaListViewModel>
+    {
+        /// <summary>
+        /// Préparation des données de la page
+        /// </summary>
+        public void Prepare()
+        {
+            Prepare(false, "", "","");
+        }
+
+        public void Prepare(bool init, string filter1, string filter2, string order)
+        {
+            //vérification droit
+            CheckRight();
+
+            Data.Catalog = new Catalog();
+            Data.Catalog.Id = ActiveCatalog.ID.ToString();
+
+
+            //lecture tri
+            bool bIncreasingSort;
+            GetListSort(out bIncreasingSort, order);
+
+            // Accès métier Rule
+            CRgaa cRgaa = new CRgaa(GiveMeEquivalent);
+
+            // ... Récupération de la liste des regles
+            CRgaaList allRgaaData = cRgaa.SelectAll(bIncreasingSort, filter1, filter2);
+
+            Data.RgaaList = new List<RgaaListItemViewModel>();
+
+            foreach (CRgaa cRuleItem in allRgaaData.Values)
+            {
+                RgaaListItemViewModel rgaaItemViewModel = new RgaaListItemViewModel();
+
+                rgaaItemViewModel.Rgaa_Critere = cRuleItem.Critere;
+                rgaaItemViewModel.Rgaa_Libelle_Id = cRuleItem.Libelle_Id;
+                rgaaItemViewModel.Rgaa_Libelle = cRuleItem.Label;
+                rgaaItemViewModel.Rgaa_Fae = string.IsNullOrEmpty(cRuleItem.Fae) ? cRuleItem.Fae: Enum.GetName(typeof(FaeEnum), int.Parse( cRuleItem.Fae));
+                
+                rgaaItemViewModel.QuickWin = cRuleItem.Quick_Win == true ? "Oui": "Non";
+                rgaaItemViewModel.Ra_Web = cRuleItem.Ra_Web == true ? "Oui" : "Non";
+                rgaaItemViewModel.Niveau_ARA = cRuleItem.Niveau_Ara;
+
+                //check related rules
+                rgaaItemViewModel.CanDelete = cRuleItem.GetListRelatedRules().Count > 0 ? false : true;
+                Data.RgaaList.Add(rgaaItemViewModel);
+            }
+
+            if (bIncreasingSort)
+                Data.Wordingorder = "asc";
+            else
+                Data.Wordingorder = "desc";
+
+            // filtre
+            Data.Wordingfilter1 = filter1;
+            Data.Wordingfilter2 = filter2;
+        }
+
+
+        [DefaultNextStep(target: typeof(RgaaList))]
+        [Submission(ValidationGroups = new[] { "none" })]
+        public NextStepId DoFilter()
+        {
+            return NextStepId.Default(false, Data.Wordingfilter1, Data.Wordingfilter2, "");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="wordingorder"></param>
+        /// <returns></returns>
+        [DefaultNextStep(target: typeof(RgaaList))]
+        [Submission]
+        public NextStepId DoSort(string wordingorder)
+        {
+            Data.Wordingorder = wordingorder;
+            return NextStepId.Default(false, Data.Wordingfilter1, Data.Wordingfilter2, Data.Wordingorder);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [DefaultNextStep(target: typeof(RgaaList))]
+        [Submission]
+        public NextStepId DoReset()
+        {
+            // Vérification des droits d'accès à l'application.
+            CheckRight();
+
+            SearchCriteriaSession critSession = SessionObjects.GetOrInit<SearchCriteriaSession>("SearchCrit");
+            // purge les critères de recherche de la session
+            SessionObjects.Remove<SearchCriteriaSession>(critSession);
+
+            return NextStepId.Default();
+        }
+
+        /// <summary>
+        /// tri
+        /// </summary>
+        /// <param name="_bAscendingSort"></param>
+        /// <param name="sSort"></param>
+        public void GetListSort(out bool _bAscendingSort, string sSort)
+        {
+            // Tri croissant demandé (par défaut : Vrai)
+            _bAscendingSort = true;
+
+            // Lecture de la demande de tri par Libellé
+            // Recherche de l'éventuel sens de tri
+            if (!string.IsNullOrEmpty(sSort) && sSort.ToLower() == "desc")
+                // Un tri décroissant est demandé
+                _bAscendingSort = false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [DefaultNextStep(target: typeof(RgaaItemView))]
+        [Submission]
+        [RestoreData]
+        public NextStepId GoRgaaDetail(string rgaaId)
+        {
+            // Vérification des droits d'accès à l'application.
+            CheckRight();
+
+            return NextStepId.Default(rgaaId);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [DefaultNextStep(target: typeof(RgaaCreate))]
+        [Submission]
+        [RestoreData]
+        public NextStepId DoCreateRgaa()
+        {
+            // Vérification des droits d'accès à l'application.
+            CheckRight();
+
+            return NextStepId.Default();
+        }
+
+        /// <summary>
+        /// modification
+        /// </summary>
+        /// <returns></returns>
+        [DefaultNextStep(target: typeof(RgaaCreate))]
+        [RestoreData]
+        public NextStepId DoUpdate(string rgaaId)
+        {
+            // Vérif droit
+            CheckRight();
+
+            return NextStepId.Default(rgaaId);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rgaaId"></param>
+        /// <returns></returns>
+        [DefaultNextStep(target: typeof(RgaaDelete))]
+        public NextStepId DoDelete(string rgaaId)
+        {
+            return NextStepId.Default(rgaaId);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [DefaultNextStep(target: typeof(RgaaList))]
+        [Submission]
+        [RestoreData]
+        public NextStepId GoNext(int currentpage, int targetpage)
+        {
+            return NextStepId.Default(false, Data.Wordingfilter1, Data.Wordingfilter2, Data.Wordingorder);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [DefaultNextStep(target: typeof(RgaaList))]
+        [Submission]
+        [RestoreData]
+        public NextStepId GoLast()
+        {
+            return NextStepId.Default(false, Data.Wordingfilter1, Data.Wordingfilter2, Data.Wordingorder);
+        }
+    }
+}
