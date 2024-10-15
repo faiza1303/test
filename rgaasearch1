@@ -1,0 +1,25 @@
+/// <summary>
+/// 
+/// </summary>
+/// <param name="_bAscendingSort"></param>
+/// <param name="_sWording1"></param>
+/// <param name="_sWording2"></param>
+/// <returns></returns>
+public CRgaaList SelectAll(bool _bAscendingSort, string _sWording1, string _sWording2)
+{
+    // check cat id
+    CheckCAT_ID("liste des rgaa", "liste");
+
+
+    Rgaa_GetList sqlproxy = ServiceFactory.CreateNewService<Rgaa_GetList>();
+
+    sqlproxy.Input.Tri = _bAscendingSort == true ? 0 : 1;
+    sqlproxy.Input.Wording1 = _sWording1;
+    sqlproxy.Input.Wording2 = _sWording2;
+
+    sqlproxy.Execute();
+
+    // Lecture de la réponse
+    CRgaaList rgaaList = ReadRgaaFromSqlResultset(sqlproxy.Output);
+    return rgaaList;
+}
